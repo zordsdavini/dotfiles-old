@@ -1,2 +1,6 @@
+~/.tmux.conf
+~/.Xresources
+~/.xsession
+~/.zshrc
 ~/.config/dunst/dunstrc
 ~/.config/qtile/config.py
