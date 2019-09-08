@@ -6,8 +6,8 @@ PWD=`pwd`
 while read TARGET; do
     SOURCE=`echo $TARGET | sed "s,~,$HOME,g"`
     DESTINATION=`echo $TARGET | sed "s,\.,\$,g" | sed "s,~,$PWD,g"`
-    DESTINATION=`dirname $DESTINATION`
-    mkdir -p $DESTINATION
+    DESTINATIONDIR=`dirname $DESTINATION`
+    mkdir -p $DESTINATIONDIR
     echo $TARGET
     cp $SOURCE $DESTINATION
 done < ./list
