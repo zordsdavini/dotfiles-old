@@ -22,11 +22,39 @@ from libqtile.config import EzKey as Key, Screen, Group, Drag, Click
 from libqtile.command import lazy
 from libqtile import layout, bar, widget, extension, hook
 from subprocess import call
+import sys
 import xrp
 import json
 from os import path, getenv
 
 from typing import List  # noqa: F401
+
+"""
+TODO
+====
+
+1. clipmenu
+2. passmenu
+3. moc manager as commandSet <M-m>
+3. commandSet for session: lock, logout, suspend, shutdown
+4. commandSet for often used commands
+5. bottom add graph: mem, cpu, net
+6. Audio key bindings
+7. scrot to print key (default selection)
+8. start with hidden bottom
+
+improve Qtile:
+-------------
+
+1. keylayout widget add option, ex. composit key
+2. tooltips
+3. mouse clicks to all widgets
+4. dmenu options from config pass to commands (clipmenu, passmenu)
+5. backlight mouse scroll doesn't work
+6. theme extension
+7. restore POMODORE on qtile restart
+
+"""
 
 # monadtall extention to follow maximized window if we have only two
 @lazy.function
@@ -48,11 +76,18 @@ def z_maximize(qtile):
 
 class Commands:
     autorandr = ['autorandr', '-c']
+    alsamixer = 'st -e alsamixer'
+    update = "st -e yay -Syua"
 
     def reload_screen(self):
         call(self.autorandr)
 
+
 commands = Commands()
+
+cloud = path.realpath(getenv('HOME') + '/cloud') 
+sys.path.insert(1, cloud)
+import pakavuota
 
 xresources = path.realpath(getenv('HOME') + '/.Xresources') 
 result = xrp.parse_file(xresources, 'utf-8')
@@ -62,7 +97,8 @@ FONT_SIZE = int(font_data[1].split('=')[1])
 
 color_data = json.loads(open(getenv('HOME') + '/.cache/wal/colors.json').read())
 #BLACK = color_data['colors']['color0']
-BLACK = "#15181a"
+#BLACK = "#15181a"
+BLACK = "#1A1C1D"
 RED = color_data['colors']['color1']
 GREEN = color_data['colors']['color2']
 YELLOW = color_data['colors']['color3']
@@ -153,10 +189,11 @@ screens = [
                 widget.Clipboard(foreground=RED),
                 widget.Moc(play_color=GREEN, noplay_color=YELLOW),
                 widget.Systray(),
-                widget.Volume(foreground=GREEN),
+                widget.Volume(volume_app=commands.alsamixer, foreground=GREEN),
                 widget.KeyboardLayout(configured_keyboards=['us', 'lt', 'ru phonetic'], foreground=GREEN),
                 widget.Battery(discharge_char='↓', charge_char='↑', format='{char} {hour:d}:{min:02d}', foreground=YELLOW, low_foreground=RED),
-                widget.CheckUpdates(),
+                widget.GmailChecker(username=pakavuota.gmail_user, password=pakavuota.gmail_password, status_only_unseen=True, fmt="{0}", foreground=GREEN),
+                widget.CheckUpdates(display_format='{updates}', colour_no_update=GREEN, colour_have_updates=RED, execute=commands.update),
                 widget.Clock(format='%Y-%m-%d %H:%M'),
             ],
             24,
