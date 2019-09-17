@@ -33,10 +33,6 @@ from typing import List  # noqa: F401
 TODO
 ====
 
-1. clipmenu
-2. passmenu
-3. moc manager as commandSet <M-m>
-3. commandSet for session: lock, logout, suspend, shutdown
 4. commandSet for often used commands
 5. bottom add graph: mem, cpu, net
 6. Audio key bindings
@@ -49,7 +45,6 @@ improve Qtile:
 1. keylayout widget add option, ex. composit key
 2. tooltips
 3. mouse clicks to all widgets
-4. dmenu options from config pass to commands (clipmenu, passmenu)
 5. backlight mouse scroll doesn't work
 6. theme extension
 7. restore POMODORE on qtile restart
@@ -73,6 +68,11 @@ def z_maximize(qtile):
         if ow and fw.info()['width'] < ow.info()['width']:
             l.cmd_next()
 
+
+# keyboard next layout
+@lazy.function
+def z_next_keyboard(qtile):
+    keyboard_widget.cmd_next_keyboard()
 
 class Commands:
     autorandr = ['autorandr', '-c']
@@ -135,6 +135,7 @@ keys = [
     Key("M-<period>", lazy.next_screen()),
 
     Key("M-<Return>", lazy.spawn("st -e tmux")),
+    Key("A-S-<space>", z_next_keyboard),
     Key("M-<Tab>", lazy.next_layout()),
     Key("M-S-w", lazy.window.kill()),
 
@@ -144,6 +145,32 @@ keys = [
     Key("M-r", lazy.run_extension(extension.DmenuRun())),
     Key("M-A-l", lazy.run_extension(extension.WindowList())),
     Key("M-C-f", lazy.window.toggle_floating()),
+
+    # Commands
+    Key("M-C-c", lazy.run_extension(extension.Dmenu(dmenu_command="clipmenu", foreground=YELLOW, selected_background=YELLOW))),
+    Key("M-A-p", lazy.run_extension(extension.Dmenu(dmenu_command="passmenu", dmenu_lines=0, foreground=RED, selected_background=RED))),
+    Key("M-m", lazy.run_extension(extension.CommandSet(
+        commands={
+            'play/pause': '[ $(mocp -i | wc -l) -lt 2 ] && mocp -p || mocp -G',
+            'next': 'mocp -f',
+            'previous': 'mocp -r',
+            'quit': 'mocp -x',
+            'open': 'st -e mocp &',
+            'shuffle': 'mocp -t shuffle',
+            'repeat': 'mocp -t repeat',
+            },
+        pre_commands=['[ $(mocp -i | wc -l) -lt 1 ] && mocp -S'],
+        foreground=BLUE, selected_background=BLUE))),
+    Key("M-S-C-q", lazy.run_extension(extension.CommandSet(
+        commands={
+            'lock': 'slock',
+            'suspend': 'systemctl suspend && slock',
+            'restart': 'reboot',
+            'halt': 'systemctl poweroff',
+            'logout': 'qtile-cmd -o cmd -f shutdown',
+            'reload': 'qtile-cmd -o cmd -f restart',
+            },
+        foreground=RED, selected_background=RED))),
 ]
 
 groups = [Group(i) for i in "asdfg"]
@@ -179,6 +206,7 @@ extension_defaults = dict(
     dmenu_height=24,
 )
 
+keyboard_widget = widget.KeyboardLayout(configured_keyboards=['us', 'lt', 'ru phonetic'], foreground=GREEN)
 screens = [
     Screen(
         top=bar.Bar(
@@ -190,7 +218,7 @@ screens = [
                 widget.Moc(play_color=GREEN, noplay_color=YELLOW),
                 widget.Systray(),
                 widget.Volume(volume_app=commands.alsamixer, foreground=GREEN),
-                widget.KeyboardLayout(configured_keyboards=['us', 'lt', 'ru phonetic'], foreground=GREEN),
+                keyboard_widget,
                 widget.Battery(discharge_char='↓', charge_char='↑', format='{char} {hour:d}:{min:02d}', foreground=YELLOW, low_foreground=RED),
                 widget.GmailChecker(username=pakavuota.gmail_user, password=pakavuota.gmail_password, status_only_unseen=True, fmt="{0}", foreground=GREEN),
                 widget.CheckUpdates(display_format='{updates}', colour_no_update=GREEN, colour_have_updates=RED, execute=commands.update),

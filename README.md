@@ -13,3 +13,4 @@ TODO:
 
   - script to remove trash files from `$HOME`
   - collect programs to progs.csv. Use `pip list`, `pacman -Qqetn >> progs.csv`, `pacman -Qqemt`
+  - move to Makefile
