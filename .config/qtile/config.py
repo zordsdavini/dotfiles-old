@@ -20,6 +20,7 @@
 
 from libqtile.config import EzKey as Key, Screen, Group, Drag, Click
 from libqtile.command import lazy
+from libqtile.dgroups import simple_key_binder
 from libqtile import layout, bar, widget, extension, hook
 from subprocess import call
 import sys
@@ -34,15 +35,13 @@ TODO
 ====
 
 4. commandSet for often used commands
-5. bottom add graph: mem, cpu, net
+5. bottom add graph: mem, cpu, net, space
 6. Audio key bindings
 7. scrot to print key (default selection)
-8. start with hidden bottom
 
 improve Qtile:
 -------------
 
-1. keylayout widget add option, ex. composit key
 2. tooltips
 3. mouse clicks to all widgets
 5. backlight mouse scroll doesn't work
@@ -77,7 +76,7 @@ def z_next_keyboard(qtile):
 class Commands:
     autorandr = ['autorandr', '-c']
     alsamixer = 'st -e alsamixer'
-    update = "st -e yay -Syua"
+    update = "st -e yay -Syu"
 
     def reload_screen(self):
         call(self.autorandr)
@@ -85,6 +84,7 @@ class Commands:
 
 commands = Commands()
 
+# import passwords
 cloud = path.realpath(getenv('HOME') + '/cloud') 
 sys.path.insert(1, cloud)
 import pakavuota
@@ -115,8 +115,8 @@ keys = [
     Key("M-j", lazy.layout.up()),
 
     # Move windows up or down in current stack
-    Key("M-S-h", lazy.layout.shuffle_left()),
-    Key("M-S-l", lazy.layout.shuffle_right()),
+    Key("M-S-h", lazy.layout.swap_left()),
+    Key("M-S-l", lazy.layout.swap_right()),
     Key("M-S-k", lazy.layout.shuffle_down()),
     Key("M-S-j", lazy.layout.shuffle_up()),
 
@@ -139,14 +139,15 @@ keys = [
     Key("M-<Tab>", lazy.next_layout()),
     Key("M-S-w", lazy.window.kill()),
 
+    Key("M-S-x", lazy.hide_show_bar("top")),
+    Key("M-C-x", lazy.hide_show_bar("bottom")),
+
     Key("M-C-r", lazy.restart()),
-    # Key([mod, "control"], "q", lazy.shutdown()),
-    Key("M-C-q", lazy.spawn("slock")),
-    Key("M-r", lazy.run_extension(extension.DmenuRun())),
-    Key("M-A-l", lazy.run_extension(extension.WindowList())),
     Key("M-C-f", lazy.window.toggle_floating()),
 
     # Commands
+    Key("M-r", lazy.run_extension(extension.DmenuRun())),
+    Key("M-A-l", lazy.run_extension(extension.WindowList(foreground=BLUE, selected_background=BLUE))),
     Key("M-C-c", lazy.run_extension(extension.Dmenu(dmenu_command="clipmenu", foreground=YELLOW, selected_background=YELLOW))),
     Key("M-A-p", lazy.run_extension(extension.Dmenu(dmenu_command="passmenu", dmenu_lines=0, foreground=RED, selected_background=RED))),
     Key("M-m", lazy.run_extension(extension.CommandSet(
@@ -161,7 +162,7 @@ keys = [
             },
         pre_commands=['[ $(mocp -i | wc -l) -lt 1 ] && mocp -S'],
         foreground=BLUE, selected_background=BLUE))),
-    Key("M-S-C-q", lazy.run_extension(extension.CommandSet(
+    Key("M-C-q", lazy.run_extension(extension.CommandSet(
         commands={
             'lock': 'slock',
             'suspend': 'systemctl suspend && slock',
@@ -173,14 +174,14 @@ keys = [
         foreground=RED, selected_background=RED))),
 ]
 
-groups = [Group(i) for i in "asdfg"]
+groups = [Group(i) for i in "1234567890"]
 
 for i in groups:
     keys.extend([
-        # mod1 + letter of group = switch to group
+        # mod4 + letter of group = switch to group
         Key("M-%s" % i.name, lazy.group[i.name].toscreen()),
 
-        # mod1 + shift + letter of group = switch to & move focused window to group
+        # mod4 + shift + letter of group = switch to & move focused window to group
         Key("M-S-%s" % i.name, lazy.window.togroup(i.name)),
     ])
 
@@ -206,34 +207,34 @@ extension_defaults = dict(
     dmenu_height=24,
 )
 
-keyboard_widget = widget.KeyboardLayout(configured_keyboards=['us', 'lt', 'ru phonetic'], foreground=GREEN)
+keyboard_widget = widget.KeyboardLayout(configured_keyboards=['us', 'lt', 'ru phonetic'], options='compose:menu,grp_led:scroll', foreground=GREEN)
+
+top = bar.Bar(
+    [
+        widget.GroupBox(hide_unused=True),
+        widget.CurrentLayoutIcon(scale=0.65),
+        widget.WindowName(),
+        widget.Clipboard(foreground=RED),
+        widget.Moc(play_color=GREEN, noplay_color=YELLOW),
+        widget.Systray(),
+        widget.Volume(volume_app=commands.alsamixer, foreground=GREEN),
+        keyboard_widget,
+        widget.Battery(discharge_char='↓', charge_char='↑', format='{char} {hour:d}:{min:02d}', foreground=YELLOW, low_foreground=RED),
+        widget.GmailChecker(username=pakavuota.gmail_user, password=pakavuota.gmail_password, status_only_unseen=True, fmt="{0}", foreground=GREEN),
+        widget.CheckUpdates(display_format='{updates}', colour_no_update=GREEN, colour_have_updates=RED, execute=commands.update),
+        widget.Clock(format='%Y-%m-%d %H:%M'),
+    ],
+    24,
+)
+bottom = bar.Bar(
+    [
+        widget.Backlight(change_command='light -S {0}', foreground=GREEN, backlight_name='intel_backlight'),
+        widget.Pomodoro(color_inactive=YELLOW, color_break=GREEN, color_active=RED),
+    ],
+    24,
+)
 screens = [
-    Screen(
-        top=bar.Bar(
-            [
-                widget.GroupBox(),
-                widget.CurrentLayoutIcon(scale=0.65),
-                widget.WindowName(),
-                widget.Clipboard(foreground=RED),
-                widget.Moc(play_color=GREEN, noplay_color=YELLOW),
-                widget.Systray(),
-                widget.Volume(volume_app=commands.alsamixer, foreground=GREEN),
-                keyboard_widget,
-                widget.Battery(discharge_char='↓', charge_char='↑', format='{char} {hour:d}:{min:02d}', foreground=YELLOW, low_foreground=RED),
-                widget.GmailChecker(username=pakavuota.gmail_user, password=pakavuota.gmail_password, status_only_unseen=True, fmt="{0}", foreground=GREEN),
-                widget.CheckUpdates(display_format='{updates}', colour_no_update=GREEN, colour_have_updates=RED, execute=commands.update),
-                widget.Clock(format='%Y-%m-%d %H:%M'),
-            ],
-            24,
-        ),
-        bottom=bar.Bar(
-            [
-                widget.Backlight(change_command='light -S {0}', foreground=GREEN, backlight_name='intel_backlight'),
-                widget.Pomodoro(color_inactive=YELLOW, color_break=GREEN, color_active=RED),
-            ],
-            24,
-        ),
-    ),
+    Screen(top=top, bottom=bottom),
 ]
 
 # Drag floating layouts.
@@ -269,9 +270,14 @@ auto_fullscreen = True
 focus_on_window_activation = "smart"
 
 
-@hook.subscribe.startup_once
+@hook.subscribe.startup
 def startup():
-   commands.reload_screen()
+    bottom.show(False)
+
+
+@hook.subscribe.startup_once
+def startup_once():
+    commands.reload_screen()
 
 
 @hook.subscribe.screen_change
