@@ -20,7 +20,6 @@
 
 from libqtile.config import EzKey as Key, Screen, Group, Drag, Click
 from libqtile.command import lazy
-from libqtile.dgroups import simple_key_binder
 from libqtile import layout, bar, widget, extension, hook
 from subprocess import call
 import sys
@@ -35,8 +34,6 @@ TODO
 ====
 
 4. commandSet for often used commands
-5. bottom add graph: mem, cpu, net, space
-6. Audio key bindings
 7. scrot to print key (default selection)
 
 improve Qtile:
@@ -44,7 +41,6 @@ improve Qtile:
 
 2. tooltips
 3. mouse clicks to all widgets
-5. backlight mouse scroll doesn't work
 6. theme extension
 7. restore POMODORE on qtile restart
 
@@ -77,6 +73,9 @@ class Commands:
     autorandr = ['autorandr', '-c']
     alsamixer = 'st -e alsamixer'
     update = "st -e yay -Syu"
+    volume_up = 'amixer -q -c 0 sset Master 5dB+'
+    volume_down = 'amixer -q -c 0 sset Master 5dB-'
+    volume_toggle = 'amixer -q set Master toggle'
 
     def reload_screen(self):
         call(self.autorandr)
@@ -145,9 +144,17 @@ keys = [
     Key("M-C-r", lazy.restart()),
     Key("M-C-f", lazy.window.toggle_floating()),
 
+    # Sound
+    Key('<XF86AudioRaiseVolume>', lazy.spawn(Commands.volume_up)),
+    Key('<XF86AudioLowerVolume>', lazy.spawn(Commands.volume_down)),
+    Key('M-<Up>', lazy.spawn(Commands.volume_up)),
+    Key('M-<Down>', lazy.spawn(Commands.volume_down)),
+    Key('<XF86AudioMute>', lazy.spawn(Commands.volume_toggle)),
+
+
     # Commands
     Key("M-r", lazy.run_extension(extension.DmenuRun())),
-    Key("M-A-l", lazy.run_extension(extension.WindowList(foreground=BLUE, selected_background=BLUE))),
+    Key("M-A-l", lazy.run_extension(extension.WindowList(item_format="{group}: {window}", foreground=BLUE, selected_background=BLUE))),
     Key("M-C-c", lazy.run_extension(extension.Dmenu(dmenu_command="clipmenu", foreground=YELLOW, selected_background=YELLOW))),
     Key("M-A-p", lazy.run_extension(extension.Dmenu(dmenu_command="passmenu", dmenu_lines=0, foreground=RED, selected_background=RED))),
     Key("M-m", lazy.run_extension(extension.CommandSet(
@@ -230,6 +237,10 @@ bottom = bar.Bar(
     [
         widget.Backlight(change_command='light -S {0}', foreground=GREEN, backlight_name='intel_backlight'),
         widget.Pomodoro(color_inactive=YELLOW, color_break=GREEN, color_active=RED),
+        widget.Spacer(length=bar.STRETCH),
+        widget.CPUGraph(graph_color=RED, border_color=RED), 
+        widget.MemoryGraph(graph_color=YELLOW, border_color=YELLOW),
+        widget.NetGraph(graph_color=BLUE, border_color=BLUE, interface="wlp5s0", bandwidth_type="down"),
     ],
     24,
 )
