@@ -99,3 +99,4 @@ A,slack-desktop,
 ,xorg-xwininfo,
 ,xorg-xwud,
 P,xparser,lib for Qtile to parse .Xresource file
+G,https://github.com/zordsdavini/st.git,patched version of suckless st terminal
