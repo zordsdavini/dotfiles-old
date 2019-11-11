@@ -2,3 +2,5 @@
 
 *.font:	hack:pixelsize=11:antialias=true:autohint=true;
 *.alpha: 0.9
+*.termname: st-256color
+

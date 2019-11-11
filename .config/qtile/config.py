@@ -194,7 +194,8 @@ for i in groups:
 
 layouts = [
     layout.Max(),
-    layout.MonadTall(border_focus=RED, new_at_current=True)
+    layout.MonadTall(border_focus=RED, new_at_current=True),
+    layout.Columns(border_focus=RED),
 ]
 
 widget_defaults = dict(

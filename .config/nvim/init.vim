@@ -8,12 +8,15 @@
 
 " PLUGINS {
     call plug#begin()
-    Plug 'junegunn/fzf.vim'
-    Plug 'phpactor/phpactor', {'for': 'php', 'do': 'composer install'}
+    Plug 'junegunn/fzf.vim'                                             " fzf
+    Plug 'phpactor/phpactor', {'for': 'php', 'do': 'composer install'}  " php
+    Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }                 " go
+    Plug 'vim-airline/vim-airline'                                      " status bar
     call plug#end()
 " }
 
 " GENERAL {
+    syn
     let mapleader='\'
 
     set autoindent
@@ -43,7 +46,7 @@
 
 " PHPACTOR {
     let g:phpactorPhpBin = 'php'
-    let g:phpactorBranch = 'master'
+    let g:phpactorBranch = 'develop'
     let g:phpactorOmniAutoClassImport = v:true
 
     " Include use statement
