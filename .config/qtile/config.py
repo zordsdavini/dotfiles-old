@@ -34,7 +34,6 @@ TODO
 ====
 
 4. commandSet for often used commands
-7. scrot to print key (default selection)
 
 improve Qtile:
 -------------
@@ -76,6 +75,9 @@ class Commands:
     volume_up = 'amixer -q -c 0 sset Master 5dB+'
     volume_down = 'amixer -q -c 0 sset Master 5dB-'
     volume_toggle = 'amixer -q set Master toggle'
+    screenshot_all = 'zscrot'
+    screenshot_window = 'zscrot u'
+    screenshot_selection = 'zscrot s'
 
     def reload_screen(self):
         call(self.autorandr)
@@ -151,12 +153,17 @@ keys = [
     Key('M-<Down>', lazy.spawn(Commands.volume_down)),
     Key('<XF86AudioMute>', lazy.spawn(Commands.volume_toggle)),
 
+    # Screenshot
+    Key('<Print>', lazy.spawn(Commands.screenshot_selection)),
+    Key('S-<Print>', lazy.spawn(Commands.screenshot_all)),
+    Key('A-<Print>', lazy.spawn(Commands.screenshot_window)),
 
     # Commands
     Key("M-r", lazy.run_extension(extension.DmenuRun())),
     Key("M-A-l", lazy.run_extension(extension.WindowList(item_format="{group}: {window}", foreground=BLUE, selected_background=BLUE))),
     Key("M-C-c", lazy.run_extension(extension.Dmenu(dmenu_command="clipmenu", foreground=YELLOW, selected_background=YELLOW))),
     Key("M-A-p", lazy.run_extension(extension.Dmenu(dmenu_command="passmenu", dmenu_lines=0, foreground=RED, selected_background=RED))),
+    Key("M-A-n", lazy.run_extension(extension.Dmenu(dmenu_command="networkmanager_dmenu", foreground=RED, selected_background=RED))),
     Key("M-m", lazy.run_extension(extension.CommandSet(
         commands={
             'play/pause': '[ $(mocp -i | wc -l) -lt 2 ] && mocp -p || mocp -G',
@@ -179,6 +186,11 @@ keys = [
             'reload': 'qtile-cmd -o cmd -f restart',
             },
         foreground=RED, selected_background=RED))),
+    Key("M-A-b", lazy.run_extension(extension.CommandSet(
+        commands={
+            'tasks': 'chrome https://phabricator.boozt-dev.com/project/board/47/query/2nkNKbXpKwJK/',
+            },
+        foreground=YELLOW, selected_background=YELLOW))),
 ]
 
 groups = [Group(i) for i in "1234567890"]
