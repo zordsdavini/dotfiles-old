@@ -5,3 +5,4 @@
 ~/.config/dunst/dunstrc
 ~/.config/qtile/config.py
 ~/.config/nvim/init.vim
+~/bin/zscrot
