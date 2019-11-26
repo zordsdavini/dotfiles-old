@@ -13,8 +13,10 @@
     Plug 'scrooloose/nerdtree'
     Plug 'easymotion/vim-easymotion'
     Plug 'majutsushi/tagbar'
+    Plug 'mhinz/vim-startify'
 
     Plug 'phpactor/phpactor', {'for': 'php', 'do': 'composer install'}
+    Plug 'StanAngeloff/php.vim'
     Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }
 
     Plug 'jiangmiao/auto-pairs'
@@ -29,6 +31,7 @@
 
     Plug 'itchyny/lightline.vim'
     Plug 'ap/vim-css-color'
+    Plug 'morhetz/gruvbox'
 
     call plug#end()
 " }
@@ -48,12 +51,16 @@
     set shiftwidth=4
     set softtabstop=4
     set textwidth=130
+    set updatetime=100
+    set signcolumn=yes
 
     set number                     " Show current line number
     set relativenumber             " Show relative line numbers
     set mouse=a
 
     syntax on
+
+    colorscheme gruvbox
 
     " Clipboard functionality (paste from system)
     vnoremap  <leader>y "+y
@@ -145,3 +152,6 @@
       \ }
 " }
 
+" STARTIFY {
+    
+" }

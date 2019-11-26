@@ -1,6 +1,5 @@
 A,qtile-python3-git,
 A,downgrader,
-A,slock-gruvbox,
 A,ttf-sil-fonts,
 A,google-chrome,
 A,epson-inkjet-printer-201601w,
@@ -100,3 +99,4 @@ A,slack-desktop,
 ,xorg-xwud,
 P,xparser,lib for Qtile to parse .Xresource file
 G,https://github.com/zordsdavini/st.git,patched version of suckless st terminal
+G,https://github.com/zordsdavini/slock.git,patched version of suckless slock
