@@ -70,6 +70,7 @@ def z_next_keyboard(qtile):
 
 class Commands:
     autorandr = ['autorandr', '-c']
+    fehbg = ['sh', '~/.fehbg']
     alsamixer = 'st -e alsamixer'
     update = "st -e yay -Syu"
     volume_up = 'amixer -q -c 0 sset Master 5dB+'
@@ -81,16 +82,17 @@ class Commands:
 
     def reload_screen(self):
         call(self.autorandr)
+        call(self.fehbg)
 
 
 commands = Commands()
 
 # import passwords
-cloud = path.realpath(getenv('HOME') + '/cloud') 
+cloud = path.realpath(getenv('HOME') + '/cloud')
 sys.path.insert(1, cloud)
 import pakavuota
 
-xresources = path.realpath(getenv('HOME') + '/.Xresources') 
+xresources = path.realpath(getenv('HOME') + '/.Xresources')
 result = xrp.parse_file(xresources, 'utf-8')
 font_data = result.resources['*.font'].split(':')
 FONT = font_data[0]
@@ -189,6 +191,7 @@ keys = [
     Key("M-A-b", lazy.run_extension(extension.CommandSet(
         commands={
             'tasks': 'chrome https://phabricator.boozt-dev.com/project/board/47/query/2nkNKbXpKwJK/',
+            'scan (utsushi)': 'utsushi &',
             },
         foreground=YELLOW, selected_background=YELLOW))),
 ]
@@ -227,7 +230,16 @@ extension_defaults = dict(
     dmenu_height=24,
 )
 
-keyboard_widget = widget.KeyboardLayout(configured_keyboards=['us', 'lt', 'ru phonetic'], options='compose:menu,grp_led:scroll', foreground=GREEN)
+keyboard_widget = widget.KeyboardLayout(
+        configured_keyboards=['us', 'lt sgs', 'ru phonetic'],
+        # display_map={
+        #     'us': 'us ',
+        #     'lt sgs': 'sgs',
+        #     # 'ru phonetic': 'ru',
+        #     },
+        options='compose:menu,grp_led:scroll',
+        foreground=GREEN
+        )
 
 top = bar.Bar(
     [
@@ -251,7 +263,7 @@ bottom = bar.Bar(
         widget.Backlight(change_command='light -S {0}', foreground=GREEN, backlight_name='intel_backlight'),
         widget.Pomodoro(color_inactive=YELLOW, color_break=GREEN, color_active=RED),
         widget.Spacer(length=bar.STRETCH),
-        widget.CPUGraph(graph_color=RED, border_color=RED), 
+        widget.CPUGraph(graph_color=RED, border_color=RED),
         widget.MemoryGraph(graph_color=YELLOW, border_color=YELLOW),
         widget.NetGraph(graph_color=BLUE, border_color=BLUE, interface="wlp5s0", bandwidth_type="down"),
     ],

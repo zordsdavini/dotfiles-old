@@ -1,8 +1,9 @@
-~/.tmux.conf
 ~/.Xresources
+~/.config/dunst/dunstrc
+~/.config/nvim/init.vim
+~/.config/qtile/config.py
+~/.git_template/hooks/ctags
+~/.tmux.conf
 ~/.xsession
 ~/.zshrc
-~/.config/dunst/dunstrc
-~/.config/qtile/config.py
-~/.config/nvim/init.vim
 ~/bin/zscrot
