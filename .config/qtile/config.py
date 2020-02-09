@@ -241,6 +241,11 @@ keyboard_widget = widget.KeyboardLayout(
         foreground=GREEN
         )
 
+try:
+    gmail_widget = widget.GmailChecker(username=pakavuota.gmail_user, password=pakavuota.gmail_password, status_only_unseen=True, fmt="{0}", foreground=GREEN)
+except Exception:
+    gmail_widget = widget.TextBox(text='GMAIL', foreground=RED)
+
 top = bar.Bar(
     [
         widget.GroupBox(hide_unused=True),
@@ -252,7 +257,7 @@ top = bar.Bar(
         widget.Volume(volume_app=commands.alsamixer, foreground=GREEN),
         keyboard_widget,
         widget.Battery(discharge_char='↓', charge_char='↑', format='{char} {hour:d}:{min:02d}', foreground=YELLOW, low_foreground=RED),
-        widget.GmailChecker(username=pakavuota.gmail_user, password=pakavuota.gmail_password, status_only_unseen=True, fmt="{0}", foreground=GREEN),
+        gmail_widget,
         widget.CheckUpdates(display_format='{updates}', colour_no_update=GREEN, colour_have_updates=RED, execute=commands.update),
         widget.Clock(format='%Y-%m-%d %H:%M'),
     ],
