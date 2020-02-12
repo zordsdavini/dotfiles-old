@@ -277,6 +277,8 @@ map Q <Nop>
     let g:ale_php_phpcs_executable = '/home/arnas/out/phutils/vendor/bin/phpcs'
     let g:ale_php_phpcs_options = '--standard=/home/arnas/out/phutils/build/phpcs.xml'
 
+    let g:ale_php_cs_fixer_options = '--config=/home/arnas/.php_cs'
+
     let g:ale_php_phpstan_executable = './vendor/bin/phpstan'
     let g:ale_php_phpstan_level = '7'
     let g:ale_php_phpstan_configuration = './vendor/boozt/phutil/build/phpstan.neon'
@@ -289,6 +291,7 @@ map Q <Nop>
     let g:ale_fixers = {
     \   '*': ['remove_trailing_lines', 'trim_whitespace'],
     \   'javascript': ['eslint'],
+    \   'php': ['phpcbf', 'php_cs_fixer'],
     \}
 
     nmap <silent> <C-k> <Plug>(ale_previous_wrap)

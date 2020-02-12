@@ -1,4 +1,5 @@
 ~/.Xresources
+~/.config/composer/composer.json
 ~/.config/dunst/dunstrc
 ~/.config/nvim/init.vim
 ~/.config/qtile/config.py

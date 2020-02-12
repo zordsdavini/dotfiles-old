@@ -87,11 +87,6 @@ class Commands:
 
 commands = Commands()
 
-# import passwords
-cloud = path.realpath(getenv('HOME') + '/cloud')
-sys.path.insert(1, cloud)
-import pakavuota
-
 xresources = path.realpath(getenv('HOME') + '/.Xresources')
 result = xrp.parse_file(xresources, 'utf-8')
 font_data = result.resources['*.font'].split(':')
@@ -242,6 +237,11 @@ keyboard_widget = widget.KeyboardLayout(
         )
 
 try:
+    # import passwords
+    cloud = path.realpath(getenv('HOME') + '/cloud')
+    sys.path.insert(1, cloud)
+    import pakavuota
+
     gmail_widget = widget.GmailChecker(username=pakavuota.gmail_user, password=pakavuota.gmail_password, status_only_unseen=True, fmt="{0}", foreground=GREEN)
 except Exception:
     gmail_widget = widget.TextBox(text='GMAIL', foreground=RED)
