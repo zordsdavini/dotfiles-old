@@ -21,7 +21,7 @@
 from libqtile.config import EzKey as Key, Screen, Group, Drag, Click
 from libqtile.command import lazy
 from libqtile import layout, bar, widget, extension, hook
-from subprocess import call
+from subprocess import call, check_output
 import sys
 import xrp
 import json
@@ -33,7 +33,7 @@ from typing import List  # noqa: F401
 TODO
 ====
 
-4. commandSet for often used commands
+2. integrate XF86Tools
 
 improve Qtile:
 -------------
@@ -48,25 +48,26 @@ improve Qtile:
 # monadtall extention to follow maximized window if we have only two
 @lazy.function
 def z_maximize(qtile):
-    l = qtile.current_layout
-    g = qtile.current_group
-    l.cmd_maximize()
-    if len(g.windows) == 2:
+    layout = qtile.current_layout
+    group = qtile.current_group
+    layout.cmd_maximize()
+    if len(group.windows) == 2:
         fw = qtile.current_window
         ow = None
         # get other window
-        for w in g.windows:
+        for w in group.windows:
             if w != fw:
                 ow = w
 
         if ow and fw.info()['width'] < ow.info()['width']:
-            l.cmd_next()
+            layout.cmd_next()
 
 
 # keyboard next layout
 @lazy.function
 def z_next_keyboard(qtile):
     keyboard_widget.cmd_next_keyboard()
+
 
 class Commands:
     autorandr = ['autorandr', '-c']
@@ -76,13 +77,19 @@ class Commands:
     volume_up = 'amixer -q -c 0 sset Master 5dB+'
     volume_down = 'amixer -q -c 0 sset Master 5dB-'
     volume_toggle = 'amixer -q set Master toggle'
+    mic_toggle = 'amixer -q set Dmic0 toggle'
     screenshot_all = 'zscrot'
     screenshot_window = 'zscrot u'
     screenshot_selection = 'zscrot s'
+    brightness_up = 'light -A 5'
+    brightness_down = 'light -U 5'
 
     def reload_screen(self):
         call(self.autorandr)
         call(self.fehbg)
+
+    def get_watson_status(self):
+        return check_output(['watson', 'status']).decode("utf-8").replace('\n', '')
 
 
 commands = Commands()
@@ -106,27 +113,39 @@ CYAN = color_data['colors']['color6']
 WHITE = color_data['colors']['color7']
 
 keys = [
-    # Switch between windows in current stack pane
+    # Switch between windows
     Key("M-h", lazy.layout.left()),
     Key("M-l", lazy.layout.right()),
-    Key("M-k", lazy.layout.down()),
-    Key("M-j", lazy.layout.up()),
+    Key("M-j", lazy.layout.down()),
+    Key("M-k", lazy.layout.up()),
 
-    # Move windows up or down in current stack
-    Key("M-S-h", lazy.layout.swap_left()),
-    Key("M-S-l", lazy.layout.swap_right()),
-    Key("M-S-k", lazy.layout.shuffle_down()),
-    Key("M-S-j", lazy.layout.shuffle_up()),
+    # Move windows
+    Key("M-S-h", lazy.layout.shuffle_left()),
+    Key("M-S-l", lazy.layout.shuffle_right()),
+    Key("M-S-j", lazy.layout.shuffle_down()),
+    Key("M-S-k", lazy.layout.shuffle_up()),
+
+    # Grow windows
+    Key("M-C-h", lazy.layout.grow_left()),
+    Key("M-C-l", lazy.layout.grow_right()),
+    Key("M-C-j", lazy.layout.grow_down()),
+    Key("M-C-k", lazy.layout.grow_up()),
+
+    # Flip windows
+    Key("M-A-h", lazy.layout.flip_left()),
+    Key("M-A-l", lazy.layout.flip_right()),
+    Key("M-A-j", lazy.layout.flip_down()),
+    Key("M-A-k", lazy.layout.flip_up()),
+
+    # Monadtall additional
+    Key("M-i", lazy.layout.grow()),
+    Key("M-m", lazy.layout.shrink()),
+    Key("M-o", z_maximize),
+    Key("M-n", lazy.layout.reset()),
+    Key("M-S-<space>", lazy.layout.flip()),
 
     # Switch window focus to other pane(s) of stack
     Key("M-<space>", lazy.layout.next()),
-
-    # Swap panes of split stack
-    Key("M-S-<space>", lazy.layout.flip()),
-
-    # Maximize in monadtall
-    Key("M-o", z_maximize),
-    Key("M-n", lazy.layout.reset()),
 
     # Switch between monitors
     Key("M-<comma>", lazy.prev_screen()),
@@ -149,19 +168,38 @@ keys = [
     Key('M-<Up>', lazy.spawn(Commands.volume_up)),
     Key('M-<Down>', lazy.spawn(Commands.volume_down)),
     Key('<XF86AudioMute>', lazy.spawn(Commands.volume_toggle)),
+    Key('<XF86AudioMicMute>', lazy.spawn(Commands.mic_toggle)),
+
+    # Other FN keys
+    Key('<XF86MonBrightnessUp>', lazy.spawn(Commands.brightness_up)),
+    Key('<XF86MonBrightnessDown>', lazy.spawn(Commands.brightness_down)),
+    Key('<XF86Display>', lazy.spawn('arandr')),
+    Key('<XF86Favorites>', lazy.spawn('touchpad_toggle')),
 
     # Screenshot
     Key('<Print>', lazy.spawn(Commands.screenshot_selection)),
     Key('S-<Print>', lazy.spawn(Commands.screenshot_all)),
     Key('A-<Print>', lazy.spawn(Commands.screenshot_window)),
 
-    # Commands
+    # DMENU
     Key("M-r", lazy.run_extension(extension.DmenuRun())),
-    Key("M-A-l", lazy.run_extension(extension.WindowList(item_format="{group}: {window}", foreground=BLUE, selected_background=BLUE))),
-    Key("M-C-c", lazy.run_extension(extension.Dmenu(dmenu_command="clipmenu", foreground=YELLOW, selected_background=YELLOW))),
-    Key("M-A-p", lazy.run_extension(extension.Dmenu(dmenu_command="passmenu", dmenu_lines=0, foreground=RED, selected_background=RED))),
-    Key("M-A-n", lazy.run_extension(extension.Dmenu(dmenu_command="networkmanager_dmenu", foreground=RED, selected_background=RED))),
-    Key("M-m", lazy.run_extension(extension.CommandSet(
+    Key("M-A-w", lazy.run_extension(extension.WindowList(
+        item_format="{group}: {window}",
+        foreground=BLUE,
+        selected_background=BLUE))),
+    Key("M-C-c", lazy.run_extension(extension.Dmenu(
+        dmenu_command="clipmenu",
+        foreground=YELLOW,
+        selected_background=YELLOW))),
+    Key("M-A-p", lazy.run_extension(extension.Dmenu(
+        dmenu_command="passmenu",
+        foreground=RED,
+        selected_background=RED))),
+    Key("M-A-n", lazy.run_extension(extension.Dmenu(
+        dmenu_command="networkmanager_dmenu",
+        foreground=RED,
+        selected_background=RED))),
+    Key("M-A-m", lazy.run_extension(extension.CommandSet(
         commands={
             'play/pause': '[ $(mocp -i | wc -l) -lt 2 ] && mocp -p || mocp -G',
             'next': 'mocp -f',
@@ -185,7 +223,8 @@ keys = [
         foreground=RED, selected_background=RED))),
     Key("M-A-b", lazy.run_extension(extension.CommandSet(
         commands={
-            'tasks': 'chrome https://phabricator.boozt-dev.com/project/board/47/query/2nkNKbXpKwJK/',
+            'mail (neomutt)': 'st -e neomutt &',
+            'irc (irssi)': 'st -e irssi &',
             'scan (utsushi)': 'utsushi &',
             },
         foreground=YELLOW, selected_background=YELLOW))),
@@ -195,10 +234,7 @@ groups = [Group(i) for i in "1234567890"]
 
 for i in groups:
     keys.extend([
-        # mod4 + letter of group = switch to group
         Key("M-%s" % i.name, lazy.group[i.name].toscreen()),
-
-        # mod4 + shift + letter of group = switch to & move focused window to group
         Key("M-S-%s" % i.name, lazy.window.togroup(i.name)),
     ])
 
@@ -206,6 +242,7 @@ layouts = [
     layout.Max(),
     layout.MonadTall(border_focus=RED, new_at_current=True),
     layout.Columns(border_focus=RED),
+    layout.Bsp(border_focus=RED),
 ]
 
 widget_defaults = dict(
@@ -242,7 +279,14 @@ try:
     sys.path.insert(1, cloud)
     import pakavuota
 
-    gmail_widget = widget.GmailChecker(username=pakavuota.gmail_user, password=pakavuota.gmail_password, status_only_unseen=True, fmt="{0}", foreground=GREEN)
+    gmail_widget = widget.GmailChecker(
+            username=pakavuota.gmail_user,
+            password=pakavuota.gmail_password,
+            status_only_unseen=True,
+            fmt="{0}",
+            foreground=GREEN
+            )
+
 except Exception:
     gmail_widget = widget.TextBox(text='GMAIL', foreground=RED)
 
@@ -254,23 +298,72 @@ top = bar.Bar(
         widget.Clipboard(foreground=RED),
         widget.Moc(play_color=GREEN, noplay_color=YELLOW),
         widget.Systray(),
-        widget.Volume(volume_app=commands.alsamixer, foreground=GREEN),
+
+        widget.Volume(
+            volume_app=commands.alsamixer,
+            foreground=GREEN),
+
         keyboard_widget,
-        widget.Battery(discharge_char='↓', charge_char='↑', format='{char} {hour:d}:{min:02d}', foreground=YELLOW, low_foreground=RED),
+
+        widget.Battery(
+            discharge_char='↓',
+            charge_char='↑',
+            format='{char} {hour:d}:{min:02d}',
+            foreground=YELLOW,
+            low_foreground=RED),
+
         gmail_widget,
-        widget.CheckUpdates(display_format='{updates}', colour_no_update=GREEN, colour_have_updates=RED, execute=commands.update),
+
+        widget.Maildir(
+            maildir_path='~/.local/share/mail/gmail',
+            sub_folders=[{'path': 'INBOX', 'label': 'g'}],
+            total=True,
+            foreground=BLUE),
+
+        widget.Maildir(
+            maildir_path='~/.local/share/mail/zordsdavini',
+            sub_folders=[{'path': 'INBOX', 'label': 'z'}],
+            total=True,
+            foreground=BLUE),
+
+        widget.CheckUpdates(
+            distro='Arch_yay',
+            display_format='{updates}',
+            colour_no_update=GREEN,
+            colour_have_updates=RED,
+            execute=commands.update),
+
         widget.Clock(format='%Y-%m-%d %H:%M'),
     ],
     24,
 )
+
+
 bottom = bar.Bar(
     [
-        widget.Backlight(change_command='light -S {0}', foreground=GREEN, backlight_name='intel_backlight'),
-        widget.Pomodoro(color_inactive=YELLOW, color_break=GREEN, color_active=RED),
+        widget.Backlight(
+            change_command='light -S {0}',
+            foreground=GREEN,
+            backlight_name='intel_backlight'),
+
+        widget.Pomodoro(
+            color_inactive=YELLOW,
+            color_break=GREEN,
+            color_active=RED),
+
+        widget.GenPollText(
+            func=commands.get_watson_status,
+            update_interval=1,
+            foreground=BLUE),
+
         widget.Spacer(length=bar.STRETCH),
         widget.CPUGraph(graph_color=RED, border_color=RED),
         widget.MemoryGraph(graph_color=YELLOW, border_color=YELLOW),
-        widget.NetGraph(graph_color=BLUE, border_color=BLUE, interface="wlp5s0", bandwidth_type="down"),
+        widget.NetGraph(
+            graph_color=BLUE,
+            border_color=BLUE,
+            interface="wlp0s20f3",
+            bandwidth_type="down"),
     ],
     24,
 )

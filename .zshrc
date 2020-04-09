@@ -77,7 +77,12 @@ source $ZSH/oh-my-zsh.sh
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LC_CTYPE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# kubernetes
+export CHANGE_MINIKUBE_NONE_USER=true
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -98,6 +103,9 @@ alias b="~/src/infrastructure/Docker/boozt.sh"
 alias gs="git status"
 alias up="git checkout master && git pull"
 alias qtile_restart="qtile-cmd -o cmd -f restant"
+alias ww="watson"
+alias wws="watson stop"
+alias wwr="watson restart"
 
 source /usr/share/fzf/key-bindings.zsh
 source /usr/share/fzf/completion.zsh
@@ -133,24 +141,24 @@ fda() {
 
 # using ripgrep combined with preview
 # find-in-file - usage: fif <searchTerm>
-fgrep() {
+fif() {
   if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
   rg --files-with-matches --no-messages "$1" | fzf --preview "highlight -O ansi -l {} 2> /dev/null | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 '$1' || rg --ignore-case --pretty --context 10 '$1' {}"
 }
 
 # fkill - kill processes - list only the ones you can kill. Modified the earlier script.
 fkill() {
-    local pid 
+    local pid
     if [ "$UID" != "0" ]; then
         pid=$(ps -f -u $UID | sed 1d | fzf -m | awk '{print $2}')
     else
         pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
-    fi  
+    fi
 
     if [ "x$pid" != "x" ]
     then
         echo $pid | xargs kill -${1:-9}
-    fi  
+    fi
 }
 
 # fbr - checkout git branch
@@ -217,3 +225,33 @@ drm() {
 fman() {
     man -k . | fzf --prompt='Man> ' | awk '{print $1}' | xargs -r man
 }
+
+
+_watson_completion() {
+    local -a completions
+    local -a completions_with_descriptions
+    local -a response
+    response=("${(@f)$( env COMP_WORDS="${words[*]}" \
+                        COMP_CWORD=$((CURRENT-1)) \
+                        _WATSON_COMPLETE="complete_zsh" \
+                        watson )}")
+
+    for key descr in ${(kv)response}; do
+      if [[ "$descr" == "_" ]]; then
+          completions+=("$key")
+      else
+          completions_with_descriptions+=("$key":"$descr")
+      fi
+    done
+
+    if [ -n "$completions_with_descriptions" ]; then
+        _describe -V unsorted completions_with_descriptions -U -Q
+    fi
+
+    if [ -n "$completions" ]; then
+        compadd -U -V unsorted -Q -a completions
+    fi
+    compstate[insert]="automenu"
+}
+
+compdef _watson_completion watson;

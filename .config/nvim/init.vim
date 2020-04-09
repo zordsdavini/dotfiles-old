@@ -26,6 +26,8 @@ Plug 'godlygeek/tabular'
 
 Plug 'phpactor/phpactor', {'for': 'php', 'do': 'composer install'}
 Plug 'StanAngeloff/php.vim'
+Plug 'zordsdavini/vim-symfony-helper'
+Plug 'lumiliet/vim-twig'
 Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }
 
 Plug 'dense-analysis/ale'
@@ -117,6 +119,8 @@ nnoremap  <leader>s :source $MYVIMRC<CR>
 nnoremap  <leader>e :e $MYVIMRC<CR>
 
 " move in tabs
+nnoremap <A-j> :tabprev<CR>
+nnoremap <A-k> :tabnext<CR>
 nnoremap <A-Left> :tabprev<CR>
 nnoremap <A-Right> :tabnext<CR>
 
@@ -126,10 +130,13 @@ cnoremap w!! w !sudo tee > /dev/null %
 " disable Ex mode
 map Q <Nop>
 
+command! Q tabclose
+command! Bd %bd|e#
+
 
 " FZF {
     nnoremap <leader>[ :<c-u>FZF<CR>
-    nnoremap <leader>] :<c-u>FZF src<CR>
+    nnoremap <leader>] :<c-u>GFiles<CR>
     nnoremap <leader>} :<c-u>FZF assets<CR>
     nnoremap <leader>b :<c-u>Buffers<CR>
     nnoremap <leader>n :<c-u>History<CR>
@@ -167,7 +174,7 @@ map Q <Nop>
     let g:phpactorPhpBin = 'php'
     let g:phpactorBranch = 'develop'
     let g:phpactorOmniAutoClassImport = v:true
-    let g:phpactorInputListStrategy = 'fzf'
+    let g:phpactorInputListStrategy = 'phpactor#input#list#fzf'
 
     " Include use statement
     nmap <Leader>u :call phpactor#UseAdd()<CR>
@@ -274,14 +281,15 @@ map Q <Nop>
 " }
 
 " ALE {
-    let g:ale_php_phpcs_executable = '/home/arnas/out/phutils/vendor/bin/phpcs'
-    let g:ale_php_phpcs_options = '--standard=/home/arnas/out/phutils/build/phpcs.xml'
+    let g:ale_php_phpcs_executable = '/home/arnas/src/neopay-pisp/bin/phpcs'
+    " let g:ale_php_phpcs_options = '--standard=/home/arnas/out/phutils/build/phpcs.xml'
 
+    let g:ale_php_cs_fixer_executable = '/home/arnas/.config/composer/vendor/bin/php-cs-fixer'
     let g:ale_php_cs_fixer_options = '--config=/home/arnas/.php_cs'
 
-    let g:ale_php_phpstan_executable = './vendor/bin/phpstan'
-    let g:ale_php_phpstan_level = '7'
-    let g:ale_php_phpstan_configuration = './vendor/boozt/phutil/build/phpstan.neon'
+    let g:ale_php_phpstan_executable = './bin/phpstan'
+    " let g:ale_php_phpstan_level = '7'
+    " let g:ale_php_phpstan_configuration = './vendor/boozt/phutil/build/phpstan.neon'
 
     let g:ale_linters = {
     \   'php': ['php', 'phpcs', 'phpstan'],

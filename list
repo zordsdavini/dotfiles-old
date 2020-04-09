@@ -5,6 +5,9 @@
 ~/.config/qtile/config.py
 ~/.git_template/hooks/ctags
 ~/.tmux.conf
+~/.xinitrc
 ~/.xsession
+~/.zprofile
 ~/.zshrc
 ~/bin/zscrot
+~/bin/touchpad_toggle
