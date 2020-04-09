@@ -81,9 +81,6 @@ export LANG=en_US.UTF-8
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
-# kubernetes
-export CHANGE_MINIKUBE_NONE_USER=true
-
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 

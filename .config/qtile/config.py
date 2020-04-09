@@ -223,7 +223,7 @@ keys = [
         foreground=RED, selected_background=RED))),
     Key("M-A-b", lazy.run_extension(extension.CommandSet(
         commands={
-            'mail (neomutt)': 'st -e neomutt &',
+            'mail (neomutt)': 'EDITOR=/usr/bin/nvim st -e neomutt &',
             'irc (irssi)': 'st -e irssi &',
             'scan (utsushi)': 'utsushi &',
             },
