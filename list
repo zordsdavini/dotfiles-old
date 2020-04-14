@@ -7,6 +7,7 @@
 ~/.config/nvim/init.vim
 ~/.config/qtile/config.py
 ~/.git_template/hooks/ctags
+~/.moc/config
 ~/.tmux.conf
 ~/.xinitrc
 ~/.xsession

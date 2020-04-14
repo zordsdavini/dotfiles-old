@@ -22,7 +22,6 @@ from libqtile.config import EzKey as Key, Screen, Group, Drag, Click
 from libqtile.command import lazy
 from libqtile import layout, bar, widget, extension, hook
 from subprocess import call, check_output
-import sys
 import xrp
 import json
 from os import path, getenv
@@ -89,7 +88,8 @@ class Commands:
         call(self.fehbg)
 
     def get_watson_status(self):
-        return check_output(['watson', 'status']).decode("utf-8").replace('\n', '')
+        w_stat = check_output(['watson', 'status'])
+        return w_stat.decode("utf-8").replace('\n', '')
 
 
 commands = Commands()
@@ -100,9 +100,9 @@ font_data = result.resources['*.font'].split(':')
 FONT = font_data[0]
 FONT_SIZE = int(font_data[1].split('=')[1])
 
-color_data = json.loads(open(getenv('HOME') + '/.cache/wal/colors.json').read())
-#BLACK = color_data['colors']['color0']
-#BLACK = "#15181a"
+color_data = json.loads(open(getenv('HOME')+'/.cache/wal/colors.json').read())
+# BLACK = color_data['colors']['color0']
+# BLACK = "#15181a"
 BLACK = "#1A1C1D"
 RED = color_data['colors']['color1']
 GREEN = color_data['colors']['color2']
@@ -118,6 +118,7 @@ keys = [
     Key("M-l", lazy.layout.right()),
     Key("M-j", lazy.layout.down()),
     Key("M-k", lazy.layout.up()),
+    Key("M-t", lazy.spawn('urxvt || st')),
 
     # Move windows
     Key("M-S-h", lazy.layout.shuffle_left()),
@@ -273,23 +274,6 @@ keyboard_widget = widget.KeyboardLayout(
         foreground=GREEN
         )
 
-try:
-    # import passwords
-    cloud = path.realpath(getenv('HOME') + '/cloud')
-    sys.path.insert(1, cloud)
-    import pakavuota
-
-    gmail_widget = widget.GmailChecker(
-            username=pakavuota.gmail_user,
-            password=pakavuota.gmail_password,
-            status_only_unseen=True,
-            fmt="{0}",
-            foreground=GREEN
-            )
-
-except Exception:
-    gmail_widget = widget.TextBox(text='GMAIL', foreground=RED)
-
 top = bar.Bar(
     [
         widget.GroupBox(hide_unused=True),
@@ -311,8 +295,6 @@ top = bar.Bar(
             format='{char} {hour:d}:{min:02d}',
             foreground=YELLOW,
             low_foreground=RED),
-
-        gmail_widget,
 
         widget.Maildir(
             maildir_path='~/.local/share/mail/gmail',
@@ -357,25 +339,62 @@ bottom = bar.Bar(
             foreground=BLUE),
 
         widget.Spacer(length=bar.STRETCH),
-        widget.CPUGraph(graph_color=RED, border_color=RED),
-        widget.MemoryGraph(graph_color=YELLOW, border_color=YELLOW),
+        widget.CPUGraph(
+            line_width=1,
+            border_width=0,
+            width=66,
+            type='box',
+            graph_color=RED,
+            fill_color=RED
+            ),
         widget.NetGraph(
+            line_width=1,
+            border_width=0,
+            width=66,
+            type='box',
             graph_color=BLUE,
-            border_color=BLUE,
-            interface="wlp0s20f3",
-            bandwidth_type="down"),
+            fill_color=BLUE,
+            interface="auto"),
+        widget.MemoryGraph(
+            line_width=1,
+            border_width=0,
+            width=16,
+            type='box',
+            graph_color=YELLOW,
+            fill_color=YELLOW
+            ),
     ],
     24,
 )
 screens = [
     Screen(top=top, bottom=bottom),
+    Screen(top=bar.Bar(
+        [
+            widget.CurrentLayoutIcon(scale=0.65),
+            widget.WindowName(),
+        ],
+        24
+    )),
 ]
 
 # Drag floating layouts.
 mouse = [
-    Drag(["mod4"], "Button1", lazy.window.set_position_floating(), start=lazy.window.get_position()),
-    Drag(["mod4"], "Button3", lazy.window.set_size_floating(), start=lazy.window.get_size()),
-    Click(["mod4"], "Button2", lazy.window.toggle_floating())
+    Drag(
+        ["mod4"],
+        "Button1",
+        lazy.window.set_position_floating(),
+        start=lazy.window.get_position()),
+
+    Drag(
+        ["mod4"],
+        "Button3",
+        lazy.window.set_size_floating(),
+        start=lazy.window.get_size()),
+
+    Click(
+        ["mod4"],
+        "Button2",
+        lazy.window.toggle_floating())
 ]
 
 dgroups_key_binder = None
@@ -418,6 +437,7 @@ def startup_once():
 def restart_on_randr(qtile, ev):
     commands.reload_screen()
     qtile.cmd_restart()
+
 
 # XXX: Gasp! We're lying here. In fact, nobody really uses or cares about this
 # string besides java UI toolkits; you can see several discussions on the

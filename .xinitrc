@@ -1,3 +1,5 @@
 source ~/.xsession
 
-exec qtile-session
+while true; do
+    qtile
+done

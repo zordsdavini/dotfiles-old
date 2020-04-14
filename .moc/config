@@ -1,0 +1,14 @@
+# https://github.com/lipnitsk/mocp/blob/master/config.example.in
+
+# Show file titles (title, author, album) instead of file names?
+ReadTags = yes
+
+# Set playback toggles.
+Repeat = yes
+Shuffle = no
+AutoNext = yes
+
+Theme = darkdot_theme
+
+# Display full paths instead of just file names in the playlist.
+PlaylistFullPaths = no
